@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ozempic Pen Selector</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        input, button {
+            font-size: 16px;
+            padding: 5px;
+            margin: 10px 0;
+        }
+        #result {
+            margin-top: 20px;
+            border: 1px solid #ccc;
+            padding: 10px;
+            background-color: #f9f9f9;
+            min-height: 100px;
+            border-radius: 8px; /* Added rounded corners */
+        }
+    </style>
+</head>
+<body>
+    <h3>Ozempic Pen Selector</h3>
+    <label for="dose">Enter desired dose (mg):</label>
+    <input type="number" id="dose" step="0.25" min="0.25" max="2">
+    <button onclick="selectPen()">Find Pen</button>
+    <div id="result"></div>
+
+    <script>
+        const pens = [
+            { strength: "2mg/3mL", concentration: 0.68, increments: [0.25, 0.5] },
+            { strength: "4mg/3mL", concentration: 1.34, increments: [1] },
+            { strength: "8mg/3mL", concentration: 2.68, increments: [2] }
+        ];
+
+        const standardDoses = [0.25, 0.5, 1, 2];
+
+        function selectPen() {
+            const doseInput = document.getElementById('dose');
+            const resultDiv = document.getElementById('result');
+            let dose = parseFloat(doseInput.value);
+
+            if (!standardDoses.includes(dose)) {
+                resultDiv.innerHTML = `<p>Please select a standard dose: ${standardDoses.join(', ')} mg</p>`;
+                return;
+            }
+
+            let bestPen = null;
+            let alternativePens = [];
+
+            for (let pen of pens) {
+                if (pen.increments.includes(dose)) {
+                    bestPen = pen;
+                    break;
+                } else if (dose % pen.increments[0] === 0 && dose / pen.increments[0] <= 2) {
+                    alternativePens.push(pen);
+                }
+            }
+
+            let resultHTML = '';
+            if (bestPen) {
+                resultHTML += `<h4>Recommended Pen:</h4>
+                               <p>${bestPen.strength} (${bestPen.concentration} mg/mL)</p>
+                               <p>Delivers ${dose} mg in ${dose / bestPen.increments[0]} injection(s)</p>`;
+            } else {
+                resultHTML += '<h4>No single pen can deliver this dose exactly.</h4>';
+            }
+
+            if (alternativePens.length > 0) {
+                resultHTML += '<h4>Alternative Options (max 2 injections):</h4>';
+                for (let pen of alternativePens) {
+                    const injections = dose / pen.increments[0];
+                    resultHTML += `<p>${pen.strength} (${pen.concentration} mg/mL): 
+                                   ${injections} injection(s) of ${pen.increments[0]} mg</p>`;
+                }
+            }
+
+            resultDiv.innerHTML = resultHTML;
+        }
+    </script>
+</body>
+</html>
